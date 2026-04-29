@@ -1,98 +1,373 @@
-using namespace std;
-#include "BinaryTrie.h"
 #include "BinaryTrie.h"
 #include <iostream>
 
-// written by Amanda Kieffer with help from Copilot
+using namespace std;
 
-TrieNode::TrieNode()
-{
-	TrieNode()
-};
-
+// Creates an empty trie.
 BinaryTrie::BinaryTrie()
 {
-	BinaryTrie()
-	TrieNode()
-};
+    root = new TrieNode();
+    uniqueWordCount = 0;
+    totalWordCount = 0;
+}
 
+// Releases all nodes owned by the trie.
 BinaryTrie::~BinaryTrie()
 {
-	// destructor for BinaryTrie
-	// release all dynamically allocated trie nodes by traversing the trie and deleting allocated nodes
-	// prevent memory leaks when the BinaryTrie object is destroyed
-};
+    deleteTrieNodes(root);
+}
 
-string BinaryTrie::convertWordToBinaryPath(const string& word) const
+// Converts uppercase letters to lowercase letters.
+char BinaryTrie::convertCharacterToLowercase(char character) const
 {
-	// initialize empty binary tree
-	// convert a regular string word into a binary path string
-	// map character to a sequence of bits that determine left/right child choices
-	// return path
-};
+    if (character >= 'A' && character <= 'Z')
+    {
+        return static_cast<char>(character - 'A' + 'a');
+    }
 
+    return character;
+}
+
+// Converts lowercase letters to uppercase letters for output.
+char BinaryTrie::convertCharacterToUppercase(char character) const
+{
+    if (character >= 'a' && character <= 'z')
+    {
+        return static_cast<char>(character - 'a' + 'A');
+    }
+
+    return character;
+}
+
+// Checks for English alphabet characters.
+bool BinaryTrie::isLetterCharacter(char character) const
+{
+    char lowercaseCharacter = convertCharacterToLowercase(character);
+    return lowercaseCharacter >= 'a' && lowercaseCharacter <= 'z';
+}
+
+// Converts a letter into the matching child array index.
+int BinaryTrie::getChildIndex(char character) const
+{
+    char lowercaseCharacter = convertCharacterToLowercase(character);
+
+    if (lowercaseCharacter < 'a' || lowercaseCharacter > 'z')
+    {
+        return -1;
+    }
+
+    return lowercaseCharacter - 'a';
+}
+
+// Removes punctuation and converts letters to lowercase.
+string BinaryTrie::normalizeWord(const string& word) const
+{
+    string normalizedWord = "";
+
+    for (int index = 0; index < static_cast<int>(word.length()); index++)
+    {
+        char character = word[index];
+
+        if (isLetterCharacter(character))
+        {
+            normalizedWord += convertCharacterToLowercase(character);
+        }
+    }
+
+    return normalizedWord;
+}
+
+// Follows the trie path for a word or prefix.
+TrieNode* BinaryTrie::findPrefixNode(const string& prefix) const
+{
+    string normalizedPrefix = normalizeWord(prefix);
+    TrieNode* currentNode = root;
+
+    if (normalizedPrefix.length() == 0)
+    {
+        return nullptr;
+    }
+
+    for (int index = 0; index < static_cast<int>(normalizedPrefix.length()); index++)
+    {
+        int childIndex = getChildIndex(normalizedPrefix[index]);
+
+        if (childIndex < 0 || currentNode->children[childIndex] == nullptr)
+        {
+            return nullptr;
+        }
+
+        currentNode = currentNode->children[childIndex];
+    }
+
+    return currentNode;
+}
+
+// Adds a word to the trie or increments its existing count.
 void BinaryTrie::insertWordIntoTrie(const string& word)
 {
-	// insert word into the binary trie
-	// steps typically performed by this method:
-	//    convert the word to a binary path
-	//    traverse/extend the trie following the path, creating nodes as necessary
-	//    update frequency counters at the terminal node and the trie's total/unique word counts
-	// if duplicate insertion is found, increment the frequency, do not increase the unique word count
-};
+    string normalizedWord = normalizeWord(word);
 
+    if (normalizedWord.length() == 0)
+    {
+        return;
+    }
+
+    TrieNode* currentNode = root;
+
+    for (int index = 0; index < static_cast<int>(normalizedWord.length()); index++)
+    {
+        int childIndex = getChildIndex(normalizedWord[index]);
+
+        if (currentNode->children[childIndex] == nullptr)
+        {
+            currentNode->children[childIndex] = new TrieNode(normalizedWord[index]);
+        }
+
+        currentNode = currentNode->children[childIndex];
+    }
+
+    if (currentNode->isWord)
+    {
+        currentNode->count++;
+    }
+    else
+    {
+        currentNode->isWord = true;
+        currentNode->count = 1;
+        uniqueWordCount++;
+    }
+
+    totalWordCount++;
+}
+
+// Searches for a complete word in the trie.
 bool BinaryTrie::containsWord(const string& word) const
 {
-	// check if word exists in the trie
-	// if the word has been inserted previously, return true 
-	// else, return false
-};
+    TrieNode* wordNode = findPrefixNode(word);
 
+    if (wordNode == nullptr)
+    {
+        return false;
+    }
+
+    return wordNode->isWord;
+}
+
+// Returns the stored count for a complete word.
 int BinaryTrie::getFrequencyOfWord(const string& word) const
 {
-	// return the stored frequency of word in the trie
-	// locate terminal node for the word's binary path 
-	// if the word is not present, return 0
-};
+    TrieNode* wordNode = findPrefixNode(word);
 
+    if (wordNode == nullptr || !wordNode->isWord)
+    {
+        return 0;
+    }
+
+    return wordNode->count;
+}
+
+// Deletes a node and all child paths.
 void BinaryTrie::deleteTrieNodes(TrieNode* node)
 {
-	// recursively delete the subtree rooted at node
-	// traverse child nodes, delete them, and delete node itself 
-	// free all dynamically allocated nodes 
-};
+    if (node == nullptr)
+    {
+        return;
+    }
 
-int BinaryTrie::getUniqueWordCount() const
-{
-	// return the number of unique words stored in the trie
-	// value is tracked during insertions/deletions, not recomputed each call for efficiency
-};
+    for (int index = 0; index < 26; index++)
+    {
+        deleteTrieNodes(node->children[index]);
+    }
 
-int BinaryTrie::getTotalWordCount() const
-{
-	// Return the total number of words inserted into the trie,
-	// counting duplicates. For example, inserting the same word
-	// three times increases this count by 3.
-};
+    delete node;
+}
 
+// Counts a node and all child paths.
 int BinaryTrie::countTrieNodes(TrieNode* node) const
 {
-	// count and return the number of nodes in the subtree rooted at node
-	// implemented recursively as 1 + count(left) + count(right)
-};
+    if (node == nullptr)
+    {
+        return 0;
+    }
 
+    int totalNodes = 1;
+
+    for (int index = 0; index < 26; index++)
+    {
+        totalNodes += countTrieNodes(node->children[index]);
+    }
+
+    return totalNodes;
+}
+
+// Prints every terminal word node.
+void BinaryTrie::displayStoredWordsInTrie(TrieNode* node, const string& currentWord) const
+{
+    if (node == nullptr)
+    {
+        return;
+    }
+
+    string nextWord = currentWord;
+
+    if (node != root)
+    {
+        nextWord += node->letter;
+    }
+
+    if (node->isWord)
+    {
+        cout << nextWord << ": " << node->count << endl;
+    }
+
+    for (int index = 0; index < 26; index++)
+    {
+        displayStoredWordsInTrie(node->children[index], nextWord);
+    }
+}
+
+// Displays the letter branches that continue from the typed prefix.
+void BinaryTrie::displayAutocompleteBranches(TrieNode* node, const string& currentWord, const string& indent) const
+{
+    if (node == nullptr)
+    {
+        return;
+    }
+
+    string nextWord = currentWord + node->letter;
+
+    cout << indent << "|-- " << convertCharacterToUppercase(node->letter) << endl;
+
+    if (node->isWord)
+    {
+        cout << indent << "|   |-- (end) " << nextWord << " (" << node->count << ")" << endl;
+    }
+
+    for (int index = 0; index < 26; index++)
+    {
+        displayAutocompleteBranches(node->children[index], nextWord, indent + "|   ");
+    }
+}
+
+// Prints every word represented under a node.
+void BinaryTrie::displayWordPathsFromTrie(TrieNode* node, const string& currentWord) const
+{
+    if (node == nullptr)
+    {
+        return;
+    }
+
+    string nextWord = currentWord + node->letter;
+
+    if (node->isWord)
+    {
+        displayWordPath(nextWord, node->count);
+    }
+
+    for (int index = 0; index < 26; index++)
+    {
+        displayWordPathsFromTrie(node->children[index], nextWord);
+    }
+}
+
+// Prints one completed word as A -> B -> C = ABC.
+void BinaryTrie::displayWordPath(const string& word, int count) const
+{
+    for (int index = 0; index < static_cast<int>(word.length()); index++)
+    {
+        cout << convertCharacterToUppercase(word[index]);
+
+        if (index < static_cast<int>(word.length()) - 1)
+        {
+            cout << " -> ";
+        }
+    }
+
+    cout << " = ";
+
+    for (int index = 0; index < static_cast<int>(word.length()); index++)
+    {
+        cout << convertCharacterToUppercase(word[index]);
+    }
+
+    cout << " (" << count << ")" << endl;
+}
+
+// Returns the number of different words stored.
+int BinaryTrie::getUniqueWordCount() const
+{
+    return uniqueWordCount;
+}
+
+// Returns the total number of valid words processed.
+int BinaryTrie::getTotalWordCount() const
+{
+    return totalWordCount;
+}
+
+// Returns the total number of nodes in the trie.
 int BinaryTrie::getNodeCount() const
 {
-	// return the total number of nodes currently allocated in the trie
-	// this can be returned from a cached member or computed by calling countTrieNodes on the root
-};
+    return countTrieNodes(root);
+}
 
-void BinaryTrie::displayStoredWordsInTrie(TrieNode* node) const
-{
-	// Recursively traverse the trie from node and print each stored word
-};
-
+// Displays all stored words and their frequencies.
 void BinaryTrie::displayAllStoredWords() const
 {
-	// display all words stored in the trie
-};
+    displayStoredWordsInTrie(root, "");
+}
+
+// Displays autocomplete words that start with the typed prefix.
+void BinaryTrie::displayAutocompleteTree(const string& prefix) const
+{
+    string normalizedPrefix = normalizeWord(prefix);
+    TrieNode* prefixNode = findPrefixNode(normalizedPrefix);
+
+    if (normalizedPrefix.length() == 0)
+    {
+        cout << "Enter at least one letter." << endl;
+        return;
+    }
+
+    if (prefixNode == nullptr)
+    {
+        cout << "No words start with " << normalizedPrefix << "." << endl;
+        return;
+    }
+
+    cout << endl;
+    cout << "Below is the structure words form in a trie:" << endl;
+    cout << normalizedPrefix << endl;
+    cout << endl;
+    cout << "(*)" << endl;
+
+    for (int index = 0; index < static_cast<int>(normalizedPrefix.length()); index++)
+    {
+        cout << "|" << endl;
+        cout << convertCharacterToUppercase(normalizedPrefix[index]) << endl;
+    }
+
+    if (prefixNode->isWord)
+    {
+        cout << "|-- (end) " << normalizedPrefix << " (" << prefixNode->count << ")" << endl;
+    }
+
+    for (int index = 0; index < 26; index++)
+    {
+        displayAutocompleteBranches(prefixNode->children[index], normalizedPrefix, "");
+    }
+
+    cout << endl;
+    cout << "Words represented" << endl;
+
+    if (prefixNode->isWord)
+    {
+        displayWordPath(normalizedPrefix, prefixNode->count);
+    }
+
+    for (int index = 0; index < 26; index++)
+    {
+        displayWordPathsFromTrie(prefixNode->children[index], normalizedPrefix);
+    }
+}
