@@ -1,7 +1,0 @@
-<Solution>
-  <Configurations>
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
-  <Project Path="Phillip.BinaryTree.Stubs.vcxproj" Id="3ebb8a6d-9199-4b61-8445-1d38ce69ddd9" />
-</Solution>
