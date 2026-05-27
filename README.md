@@ -36,10 +36,9 @@ The primary objectives of this project are to:
 
 | Technology | Purpose |
 |---|---|
-| **Java / Python / C++** | Core project language |
+| **C++** | Core project language |
 | **Git & GitHub** | Version control and collaboration |
-| **VS Code / IntelliJ / Eclipse** | Development environment |
-| **JUnit / PyTest / etc.** | Testing framework |
+| **Visual Studio Community** | Development environment |
 
 > Replace the technologies above with the actual tools used in your project.
 
