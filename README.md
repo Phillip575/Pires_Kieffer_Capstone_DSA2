@@ -36,7 +36,7 @@ The primary objectives of this project are to:
 
 | Technology | Purpose |
 |---|---|
-| **C++** | Core project language |
+| **C++/C** | Core project language |
 | **Git & GitHub** | Version control and collaboration |
 | **Visual Studio Community** | Development environment |
 
